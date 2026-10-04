@@ -52,3 +52,14 @@ it('throws when ups rejects the credentials', function () {
     expect(fn () => (new UpsOAuth)->token())
         ->toThrow(RuntimeException::class, 'UPS OAuth failed:');
 });
+
+it('throws a helpful error when credentials are missing', function () {
+    config()->set('carriers.ups.mode', 'sandbox');
+    config()->set('carriers.ups.client_id', '');
+    config()->set('carriers.ups.client_secret', '');
+
+    Http::fake();
+
+    expect(fn () => (new UpsOAuth)->token())
+        ->toThrow(RuntimeException::class, 'UPS credentials are not configured');
+});

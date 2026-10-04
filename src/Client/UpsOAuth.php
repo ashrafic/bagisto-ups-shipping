@@ -33,8 +33,16 @@ class UpsOAuth
             return $token;
         }
 
+        $clientId = $this->config('client_id');
+
+        $clientSecret = $this->config('client_secret');
+
+        if (! $clientId || ! $clientSecret) {
+            throw new \RuntimeException('UPS credentials are not configured. Set the Client ID and Client Secret in admin under Configure → Sales → Shipping Methods → UPS Shipping.');
+        }
+
         $response = Http::asForm()
-            ->withBasicAuth($this->config('client_id'), $this->config('client_secret'))
+            ->withBasicAuth($clientId, $clientSecret)
             ->post($this->baseUrl().self::TOKEN_PATH, [
                 'grant_type' => 'client_credentials',
             ]);
