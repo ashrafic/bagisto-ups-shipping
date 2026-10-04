@@ -55,6 +55,10 @@ class Ups extends AbstractShipping
             return false;
         }
 
+        if ($quotes !== [] && $quotes[0]->currency !== core()->getBaseCurrencyCode()) {
+            logger()->warning('[UPS] quote currency ['.$quotes[0]->currency.'] differs from base currency; amounts are not exchanged.');
+        }
+
         return array_map(fn (QuotedRate $quote) => $this->toShippingRate($quote), $quotes);
     }
 
@@ -83,7 +87,7 @@ class Ups extends AbstractShipping
     protected function origin(): array
     {
         return [
-            'address1' => core()->getConfigData('sales.shipping.origin.address1'),
+            'address' => core()->getConfigData('sales.shipping.origin.address'),
             'city' => core()->getConfigData('sales.shipping.origin.city'),
             'state' => core()->getConfigData('sales.shipping.origin.state'),
             'zipcode' => core()->getConfigData('sales.shipping.origin.zipcode'),
@@ -96,10 +100,6 @@ class Ups extends AbstractShipping
      */
     protected function toShippingRate(QuotedRate $quote): CartShippingRate
     {
-        if ($quote->currency !== core()->getBaseCurrencyCode()) {
-            logger()->warning('[UPS] quote currency ['.$quote->currency.'] differs from base currency; amounts are not exchanged.');
-        }
-
         $rate = new CartShippingRate;
 
         $rate->carrier = $this->getCode();

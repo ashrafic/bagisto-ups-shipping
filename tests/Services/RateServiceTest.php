@@ -59,7 +59,7 @@ it('passes the origin into the shipper block', function () {
     app(RateService::class)->quote(
         [new CartPackage(weight: 5.0)], 'US', '10001', '90210',
         origin: [
-            'address1' => '123 Warehouse Way',
+            'address' => '123 Warehouse Way',
             'city' => 'Los Angeles',
             'state' => 'CA',
             'zipcode' => '90001',

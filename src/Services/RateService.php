@@ -39,7 +39,7 @@ class RateService
      * Quote the given packages, returning allowed services only.
      *
      * @param  CartPackage[]  $packages
-     * @param  array  $origin  optional shipper origin: address1, city, state, zipcode, country
+     * @param  array  $origin  optional shipper origin: address, city, state, zipcode, country
      * @return QuotedRate[]
      */
     public function quote(array $packages, string $shipToCountry, string $shipToPostcode, ?string $shipToState = null, ?array $origin = null): array
@@ -129,7 +129,7 @@ class RateService
         $shipper = [
             'Name' => 'Store',
             'Address' => array_filter([
-                'AddressLine1' => $origin['address1'] ?? null,
+                'AddressLine1' => $origin['address'] ?? null,
                 'City' => $origin['city'] ?? null,
                 'StateProvinceCode' => $origin['state'] ?? null,
                 'PostalCode' => $origin['zipcode'] ?? null,
