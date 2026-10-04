@@ -7,6 +7,7 @@ return [
             'ups-info' => 'Live UPS rates at checkout via the UPS REST API.',
             'title' => 'Title',
             'description' => 'Description',
+            'calculate-tax' => 'Calculate Tax',
             'status' => 'Status',
             'mode' => 'Mode',
             'mode-sandbox' => 'Sandbox (test)',

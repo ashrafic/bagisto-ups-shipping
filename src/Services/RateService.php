@@ -79,6 +79,8 @@ class RateService
             .'|'.(string) json_encode($origin)
             .'|'.(string) $this->configResolver->get('mode')
             .'|'.(string) $this->configResolver->get('services')
+            .'|'.(string) $this->configResolver->get('packaging_type')
+            .'|'.(string) $this->configResolver->get('weight_unit')
             .'|'.(string) $this->configResolver->get('handling_fee_type')
             .'|'.(string) $this->configResolver->get('handling_fee_amount')
             .'|'.(string) $this->configResolver->get('account_number'));

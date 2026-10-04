@@ -2,6 +2,9 @@
 
 namespace Ashrafic\UpsShipping\Providers;
 
+use Ashrafic\UpsShipping\Client\UpsClient;
+use Ashrafic\UpsShipping\Client\UpsOAuth;
+use Ashrafic\UpsShipping\Services\RateService;
 use Illuminate\Support\ServiceProvider;
 
 class UpsShippingServiceProvider extends ServiceProvider
@@ -20,6 +23,8 @@ class UpsShippingServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->registerConfig();
+
+        $this->app->bind(RateService::class, fn () => new RateService(new UpsClient(new UpsOAuth)));
     }
 
     /**

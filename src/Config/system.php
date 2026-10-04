@@ -22,6 +22,13 @@ return [
                 'channel_based' => true,
                 'locale_based' => true,
             ], [
+                'name' => 'is_calculate_tax',
+                'title' => 'ups-shipping::app.admin.system.calculate-tax',
+                'type' => 'boolean',
+                'default' => true,
+                'channel_based' => true,
+                'locale_based' => false,
+            ], [
                 'name' => 'active',
                 'title' => 'ups-shipping::app.admin.system.status',
                 'type' => 'boolean',
