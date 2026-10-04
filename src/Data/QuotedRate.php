@@ -2,7 +2,7 @@
 
 namespace Ashrafic\UpsShipping\Data;
 
-class QuotedRate
+final class QuotedRate
 {
     /**
      * Create a new quoted rate.

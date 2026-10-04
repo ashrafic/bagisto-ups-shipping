@@ -2,7 +2,7 @@
 
 namespace Ashrafic\UpsShipping\Data;
 
-class CartPackage
+final class CartPackage
 {
     /**
      * Create a new package.

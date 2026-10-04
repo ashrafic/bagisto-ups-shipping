@@ -23,7 +23,8 @@ it('builds a quoted rate with optional negotiated amount', function () {
         amount: 18.42,
     );
 
-    expect($rate->negotiatedAmount)->toBeNull();
+    expect($rate->negotiatedAmount)->toBeNull()
+        ->and($rate->pricedAmount())->toBe(18.42);
 
     $negotiated = new QuotedRate(
         serviceCode: '03',
@@ -33,5 +34,6 @@ it('builds a quoted rate with optional negotiated amount', function () {
         negotiatedAmount: 12.10,
     );
 
-    expect($negotiated->negotiatedAmount)->toBe(12.10);
+    expect($negotiated->negotiatedAmount)->toBe(12.10)
+        ->and($negotiated->pricedAmount())->toBe(12.10);
 });
