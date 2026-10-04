@@ -2,6 +2,7 @@
 
 namespace Ashrafic\UpsShipping\Carriers;
 
+use Ashrafic\UpsShipping\Services\RateService;
 use Webkul\Shipping\Carriers\AbstractShipping;
 
 class Ups extends AbstractShipping
@@ -24,6 +25,6 @@ class Ups extends AbstractShipping
             return false;
         }
 
-        return app(\Ashrafic\UpsShipping\Services\RateService::class)->rates();
+        return app(RateService::class)->rates();
     }
 }
