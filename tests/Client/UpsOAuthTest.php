@@ -37,3 +37,18 @@ it('targets the production host in production mode', function () {
 
     expect((new UpsOAuth)->token())->toBe('token-prod');
 });
+
+it('throws when ups rejects the credentials', function () {
+    config()->set('carriers.ups.mode', 'sandbox');
+    config()->set('carriers.ups.client_id', 'bad-id');
+    config()->set('carriers.ups.client_secret', 'bad-secret');
+
+    Http::fake([
+        'wwwcie.ups.com/security/v1/oauth/token' => Http::response(
+            ['error' => 'invalid_client'], 401
+        ),
+    ]);
+
+    expect(fn () => (new UpsOAuth)->token())
+        ->toThrow(RuntimeException::class, 'UPS OAuth failed:');
+});

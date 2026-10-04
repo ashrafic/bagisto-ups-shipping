@@ -61,7 +61,7 @@ class UpsOAuth
      */
     protected function fingerprint(): string
     {
-        return md5(implode('|', [
+        return hash('sha256', implode('|', [
             $this->config('mode'),
             $this->config('client_id'),
             $this->config('client_secret'),
