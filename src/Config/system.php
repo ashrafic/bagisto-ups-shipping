@@ -26,6 +26,7 @@ return [
                 'title' => 'ups-shipping::app.admin.system.calculate-tax',
                 'type' => 'boolean',
                 'default' => true,
+                'info' => 'ups-shipping::app.admin.system.calculate-tax-info',
                 'channel_based' => true,
                 'locale_based' => false,
             ], [

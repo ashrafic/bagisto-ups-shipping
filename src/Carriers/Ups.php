@@ -50,7 +50,7 @@ class Ups extends AbstractShipping
                 origin: $this->origin(),
             );
         } catch (\Throwable $e) {
-            logger()->error('[UPS] rate calculation failed: '.$e->getMessage());
+            logger()->error('[UPS] rate calculation failed', ['exception' => $e]);
 
             return false;
         }
@@ -96,6 +96,10 @@ class Ups extends AbstractShipping
      */
     protected function toShippingRate(QuotedRate $quote): CartShippingRate
     {
+        if ($quote->currency !== core()->getBaseCurrencyCode()) {
+            logger()->warning('[UPS] quote currency ['.$quote->currency.'] differs from base currency; amounts are not exchanged.');
+        }
+
         $rate = new CartShippingRate;
 
         $rate->carrier = $this->getCode();

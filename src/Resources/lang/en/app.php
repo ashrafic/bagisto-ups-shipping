@@ -8,6 +8,7 @@ return [
             'title' => 'Title',
             'description' => 'Description',
             'calculate-tax' => 'Calculate Tax',
+            'calculate-tax-info' => 'Controls the tax flag stored on the shipping rate. Your store\'s tax settings still govern whether shipping tax is applied.',
             'status' => 'Status',
             'mode' => 'Mode',
             'mode-sandbox' => 'Sandbox (test)',
