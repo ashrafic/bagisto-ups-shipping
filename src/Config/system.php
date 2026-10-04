@@ -117,18 +117,18 @@ return [
             ], [
                 'name'          => 'handling_fee_amount',
                 'title'         => 'ups-shipping::app.admin.system.handling-fee',
-                'type'          => 'text',
+                'type'          => 'number',
                 'default'       => '0',
-                'validation'    => 'nullable|numeric',
+                'validation'    => 'required_if:active,1|numeric',
                 'channel_based' => true,
                 'locale_based'  => false,
             ], [
                 'name'          => 'rate_cache_ttl',
                 'title'         => 'ups-shipping::app.admin.system.rate-cache-ttl',
-                'type'          => 'text',
+                'type'          => 'number',
                 'default'       => '15',
                 'info'          => 'ups-shipping::app.admin.system.rate-cache-ttl-info',
-                'validation'    => 'nullable|integer|min:0',
+                'validation'    => 'required_if:active,1|numeric',
                 'channel_based' => true,
                 'locale_based'  => false,
             ], [
