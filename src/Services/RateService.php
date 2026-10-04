@@ -58,7 +58,7 @@ class RateService
 
         $rates = $this->mapResponse($response);
 
-        if ($ttl > 0) {
+        if ($ttl > 0 && $rates !== []) {
             Cache::put($cacheKey, $rates, now()->addMinutes($ttl));
         }
 
