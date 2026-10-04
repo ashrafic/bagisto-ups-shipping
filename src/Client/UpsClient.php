@@ -2,6 +2,7 @@
 
 namespace Ashrafic\UpsShipping\Client;
 
+use Ashrafic\UpsShipping\Support\ConfigResolver;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -11,7 +12,7 @@ class UpsClient
     /**
      * Create a new client instance.
      */
-    public function __construct(protected UpsOAuth $oauth) {}
+    public function __construct(protected UpsOAuth $oauth, protected ConfigResolver $configResolver = new ConfigResolver) {}
 
     /**
      * Send a POST request to the UPS API.
@@ -75,7 +76,7 @@ class UpsClient
      */
     protected function log(string $level, string $message, array $context = []): void
     {
-        if (! config('carriers.ups.debug')) {
+        if (! $this->configResolver->get('debug')) {
             return;
         }
 

@@ -2,11 +2,17 @@
 
 namespace Ashrafic\UpsShipping\Client;
 
+use Ashrafic\UpsShipping\Support\ConfigResolver;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class UpsOAuth
 {
+    /**
+     * Create a new OAuth instance.
+     */
+    public function __construct(protected ConfigResolver $configResolver = new ConfigResolver) {}
+
     /**
      * OAuth token endpoint path.
      *
@@ -73,6 +79,6 @@ class UpsOAuth
      */
     protected function config(string $key): mixed
     {
-        return config('carriers.ups.'.$key);
+        return $this->configResolver->get($key);
     }
 }

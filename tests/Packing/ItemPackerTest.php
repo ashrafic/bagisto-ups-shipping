@@ -37,3 +37,23 @@ it('converts store weight unit to the configured ups unit', function () {
 
     expect(round($packages[0]->weight, 2))->toBe(2.2);
 });
+
+it('ships an item heavier than the cap as one package', function () {
+    config()->set('carriers.ups.max_package_weight', 10);
+
+    $packages = (new ItemPacker)->pack([
+        ['weight' => 15.0, 'quantity' => 1],
+    ]);
+
+    expect($packages)->toHaveCount(1)
+        ->and($packages[0]->weight)->toBe(15.0)
+        ->and($packages[0]->quantity)->toBe(1);
+});
+
+it('rejects unsupported weight units loudly', function () {
+    config()->set('carriers.ups.weight_unit', 'OUNCES');
+
+    expect(fn () => (new ItemPacker)->pack([
+        ['weight' => 1.0, 'quantity' => 1],
+    ]))->toThrow(InvalidArgumentException::class, 'Unsupported weight unit [OUNCES].');
+});

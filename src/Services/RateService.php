@@ -5,6 +5,7 @@ namespace Ashrafic\UpsShipping\Services;
 use Ashrafic\UpsShipping\Client\UpsClient;
 use Ashrafic\UpsShipping\Data\CartPackage;
 use Ashrafic\UpsShipping\Data\QuotedRate;
+use Ashrafic\UpsShipping\Support\ConfigResolver;
 use Illuminate\Support\Facades\Cache;
 
 class RateService
@@ -32,7 +33,7 @@ class RateService
     /**
      * Create a new service instance.
      */
-    public function __construct(protected UpsClient $client) {}
+    public function __construct(protected UpsClient $client, protected ConfigResolver $configResolver = new ConfigResolver) {}
 
     /**
      * Quote the given packages, returning allowed services only.
@@ -43,9 +44,9 @@ class RateService
      */
     public function quote(array $packages, string $shipToCountry, string $shipToPostcode, ?string $shipToState = null, ?array $origin = null): array
     {
-        $cacheKey = 'ups-shipping.rates.'.md5(serialize($packages).'|'.$shipToCountry.'|'.$shipToPostcode.'|'.(string) $shipToState.'|'.(string) json_encode($origin));
+        $cacheKey = $this->cacheKey($packages, $shipToCountry, $shipToPostcode, $shipToState, $origin);
 
-        $ttl = (int) config('carriers.ups.rate_cache_ttl', 0);
+        $ttl = (int) $this->configResolver->get('rate_cache_ttl', 0);
 
         if ($ttl > 0 && $cached = Cache::get($cacheKey)) {
             return $cached;
@@ -62,6 +63,25 @@ class RateService
         }
 
         return $rates;
+    }
+
+    /**
+     * Cache key fingerprinting every input that shapes the cached rates.
+     *
+     * @param  CartPackage[]  $packages
+     */
+    protected function cacheKey(array $packages, string $shipToCountry, string $shipToPostcode, ?string $shipToState, ?array $origin): string
+    {
+        return 'ups-shipping.rates.'.md5(serialize($packages)
+            .'|'.$shipToCountry
+            .'|'.$shipToPostcode
+            .'|'.(string) $shipToState
+            .'|'.(string) json_encode($origin)
+            .'|'.(string) $this->configResolver->get('mode')
+            .'|'.(string) $this->configResolver->get('services')
+            .'|'.(string) $this->configResolver->get('handling_fee_type')
+            .'|'.(string) $this->configResolver->get('handling_fee_amount')
+            .'|'.(string) $this->configResolver->get('account_number'));
     }
 
     /**
@@ -83,14 +103,14 @@ class RateService
                             'StateProvinceCode' => $shipToState,
                             'PostalCode' => $shipToPostcode,
                             'CountryCode' => $shipToCountry,
-                        ]),
+                        ], fn ($value) => $value !== null && $value !== ''),
                     ],
                     'Package' => array_map(fn (CartPackage $package) => [
                         'PackagingType' => [
-                            'Code' => $package->packagingType ?? config('carriers.ups.packaging_type', '02'),
+                            'Code' => $package->packagingType ?? $this->configResolver->get('packaging_type', '02'),
                         ],
                         'PackageWeight' => [
-                            'UnitOfMeasurement' => ['Code' => config('carriers.ups.weight_unit', 'LBS')],
+                            'UnitOfMeasurement' => ['Code' => $this->configResolver->get('weight_unit', 'LBS')],
                             'Weight' => (string) $package->weight,
                         ],
                     ], $packages),
@@ -112,10 +132,10 @@ class RateService
                 'StateProvinceCode' => $origin['state'] ?? null,
                 'PostalCode' => $origin['zipcode'] ?? null,
                 'CountryCode' => $origin['country'] ?? null,
-            ]),
+            ], fn ($value) => $value !== null && $value !== ''),
         ];
 
-        if ($accountNumber = config('carriers.ups.account_number')) {
+        if ($accountNumber = $this->configResolver->get('account_number')) {
             $shipper['ShipperNumber'] = $accountNumber;
         }
 
@@ -127,7 +147,7 @@ class RateService
      */
     protected function mapResponse(array $response): array
     {
-        $allowed = array_filter(explode(',', (string) config('carriers.ups.services', '')));
+        $allowed = array_filter(array_map('trim', explode(',', (string) $this->configResolver->get('services', ''))));
         $allowed = $allowed ?: array_keys(self::SERVICES);
 
         $rates = [];
@@ -135,7 +155,7 @@ class RateService
         foreach ($response['RateResponse']['RatedShipment'] ?? [] as $shipment) {
             $code = $shipment['Service']['Code'] ?? null;
 
-            if (! $code || ! in_array($code, $allowed) || ! isset(self::SERVICES[$code])) {
+            if (! $code || ! in_array($code, $allowed, true) || ! isset(self::SERVICES[$code])) {
                 continue;
             }
 
@@ -158,8 +178,8 @@ class RateService
      */
     protected function applyHandlingFee(array $rates): array
     {
-        $type = config('carriers.ups.handling_fee_type', 'fixed');
-        $amount = (float) config('carriers.ups.handling_fee_amount', 0);
+        $type = $this->configResolver->get('handling_fee_type', 'fixed');
+        $amount = (float) $this->configResolver->get('handling_fee_amount', 0);
 
         if ($amount <= 0) {
             return $rates;

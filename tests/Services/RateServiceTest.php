@@ -112,7 +112,65 @@ it('caches quotes for the configured ttl', function () {
     $service->quote($packages, 'US', '10001');
     $service->quote($packages, 'US', '10001');
 
-    Http::assertSentCount(2);
+    $shopCalls = 0;
+
+    Http::assertSent(function ($request) use (&$shopCalls) {
+        if (str_contains($request->url(), '/api/rating/v1/Shop')) {
+            $shopCalls++;
+        }
+
+        return true;
+    });
+
+    expect($shopCalls)->toBe(1);
+});
+
+it('prefers negotiated rates when ups returns them', function () {
+    config()->set('carriers.ups.handling_fee_amount', '0');
+
+    Http::fake([
+        'wwwcie.ups.com/api/rating/v1/Shop' => Http::response([
+            'RateResponse' => [
+                'RatedShipment' => [
+                    [
+                        'Service' => ['Code' => '03'],
+                        'TotalCharges' => ['CurrencyCode' => 'USD', 'MonetaryValue' => '18.42'],
+                        'NegotiatedRates' => [
+                            'NetSummaryCharges' => [
+                                'GrandTotal' => ['CurrencyCode' => 'USD', 'MonetaryValue' => '12.10'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $rates = app(RateService::class)
+        ->quote([new CartPackage(weight: 5.0)], 'US', '10001');
+
+    expect($rates[0]->amount)->toBe(18.42)
+        ->and($rates[0]->pricedAmount())->toBe(12.10);
+});
+
+it('applies percent handling fees on the priced amount', function () {
+    config()->set('carriers.ups.handling_fee_type', 'percent');
+    config()->set('carriers.ups.handling_fee_amount', '10');
+
+    Http::fake([
+        'wwwcie.ups.com/api/rating/v1/Shop' => Http::response([
+            'RateResponse' => [
+                'RatedShipment' => [
+                    ['Service' => ['Code' => '03'], 'TotalCharges' => ['CurrencyCode' => 'USD', 'MonetaryValue' => '20.00']],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $rates = app(RateService::class)
+        ->quote([new CartPackage(weight: 5.0)], 'US', '10001');
+
+    expect($rates[0]->pricedAmount())->toBe(22.0);
 });
 
 it('returns an empty array when ups reports no applicable services', function () {

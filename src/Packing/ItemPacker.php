@@ -3,6 +3,7 @@
 namespace Ashrafic\UpsShipping\Packing;
 
 use Ashrafic\UpsShipping\Data\CartPackage;
+use Ashrafic\UpsShipping\Support\ConfigResolver;
 
 class ItemPacker implements PackerInterface
 {
@@ -17,16 +18,33 @@ class ItemPacker implements PackerInterface
     public const DEFAULT_MAX_WEIGHT = 70.0;
 
     /**
+     * Weight units the packer can convert between.
+     *
+     * @var array
+     */
+    public const WEIGHT_UNITS = ['LBS', 'KGS'];
+
+    /**
+     * Create a new packer instance.
+     */
+    public function __construct(protected ConfigResolver $configResolver = new ConfigResolver) {}
+
+    /**
      * Pack items into weight-capped packages.
      */
     public function pack(array $items): array
     {
         $packages = [];
 
+        $maxWeight = (float) ($this->configResolver->get('max_package_weight') ?: self::DEFAULT_MAX_WEIGHT);
+        $packagingType = $this->configResolver->get('packaging_type');
+        $targetUnit = strtoupper((string) $this->configResolver->get('weight_unit', 'LBS'));
+
         foreach ($items as $item) {
-            $unitWeight = max($this->toUpsUnit((float) $item['weight'], $item['store_weight_unit'] ?? 'LBS'), 0.01);
-            $maxWeight = (float) (config('carriers.ups.max_package_weight') ?: self::DEFAULT_MAX_WEIGHT);
-            $packagingType = config('carriers.ups.packaging_type');
+            $unitWeight = max(
+                $this->toUpsUnit((float) ($item['weight'] ?? 0), $item['store_weight_unit'] ?? 'LBS', $targetUnit),
+                0.01
+            );
 
             $remaining = $unitWeight * (int) $item['quantity'];
 
@@ -54,10 +72,18 @@ class ItemPacker implements PackerInterface
     /**
      * Convert a weight from the store unit to the configured UPS unit.
      */
-    protected function toUpsUnit(float $weight, string $storeUnit): float
+    protected function toUpsUnit(float $weight, string $storeUnit, string $targetUnit): float
     {
-        $targetUnit = strtoupper(config('carriers.ups.weight_unit', 'LBS'));
+        $targetUnit = strtoupper($targetUnit);
         $storeUnit = strtoupper($storeUnit);
+
+        if (! in_array($targetUnit, self::WEIGHT_UNITS, true)) {
+            throw new \InvalidArgumentException("Unsupported weight unit [{$targetUnit}].");
+        }
+
+        if (! in_array($storeUnit, self::WEIGHT_UNITS, true)) {
+            throw new \InvalidArgumentException("Unsupported weight unit [{$storeUnit}].");
+        }
 
         if ($storeUnit === $targetUnit) {
             return $weight;
