@@ -20,7 +20,10 @@ it('prints a rate table on success', function () {
         ], 200),
     ]);
 
-    $this->artisan('ups:test')->assertSuccessful();
+    $this->artisan('ups:test')
+        ->expectsOutputToContain('SANDBOX')
+        ->expectsOutputToContain('Ground')
+        ->assertSuccessful();
 });
 
 it('fails gracefully when ups rejects the request', function () {
@@ -36,4 +39,22 @@ it('fails gracefully when ups rejects the request', function () {
     ]);
 
     $this->artisan('ups:test')->assertFailed();
+});
+
+it('warns and succeeds when ups returns no rates', function () {
+    config()->set('carriers.ups.mode', 'sandbox');
+    config()->set('carriers.ups.client_id', 'id');
+    config()->set('carriers.ups.client_secret', 'secret');
+    config()->set('carriers.ups.rate_cache_ttl', '0');
+
+    Http::fake([
+        'wwwcie.ups.com/security/v1/oauth/token' => Http::response([
+            'access_token' => 't', 'expires_in' => 86399,
+        ], 200),
+        'wwwcie.ups.com/api/rating/v1/Shop' => Http::response(['RateResponse' => []], 200),
+    ]);
+
+    $this->artisan('ups:test')
+        ->expectsOutputToContain('no services were returned')
+        ->assertSuccessful();
 });

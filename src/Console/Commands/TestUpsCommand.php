@@ -6,6 +6,7 @@ use Ashrafic\UpsShipping\Data\CartPackage;
 use Ashrafic\UpsShipping\Services\RateService;
 use Ashrafic\UpsShipping\Support\ConfigResolver;
 use Illuminate\Console\Command;
+use Throwable;
 
 class TestUpsCommand extends Command
 {
@@ -28,9 +29,9 @@ class TestUpsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(RateService $rateService): int
+    public function handle(RateService $rateService, ConfigResolver $configResolver): int
     {
-        $this->info('Mode: '.($this->mode() === 'production' ? 'PRODUCTION' : 'SANDBOX'));
+        $this->info('Mode: '.($this->mode($configResolver) === 'production' ? 'PRODUCTION' : 'SANDBOX'));
 
         try {
             $rates = $rateService->quote(
@@ -38,8 +39,8 @@ class TestUpsCommand extends Command
                 shipToCountry: $this->option('country'),
                 shipToPostcode: $this->option('postcode'),
             );
-        } catch (\Throwable $e) {
-            $this->error('UPS request failed: '.$e->getMessage());
+        } catch (Throwable $e) {
+            $this->error('UPS request failed: ['.get_class($e).'] '.$e->getMessage());
 
             return self::FAILURE;
         }
@@ -65,8 +66,8 @@ class TestUpsCommand extends Command
     /**
      * Resolve the configured mode through the package resolver.
      */
-    protected function mode(): string
+    protected function mode(ConfigResolver $configResolver): string
     {
-        return (string) app(ConfigResolver::class)->get('mode', 'sandbox');
+        return (string) $configResolver->get('mode', 'sandbox');
     }
 }
