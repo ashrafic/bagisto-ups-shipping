@@ -2,7 +2,6 @@
 
 namespace Ashrafic\UpsShipping\Carriers;
 
-use Webkul\Checkout\Models\CartShippingRate;
 use Webkul\Shipping\Carriers\AbstractShipping;
 
 class Ups extends AbstractShipping

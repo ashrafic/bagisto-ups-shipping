@@ -5,7 +5,7 @@ return [
         'code'        => 'ups',
         'title'       => 'UPS Shipping',
         'description' => 'UPS Shipping',
-        'active'      => true,
+        'active'      => false,
         'class'       => 'Ashrafic\UpsShipping\Carriers\Ups',
     ],
 ];
