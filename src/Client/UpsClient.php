@@ -4,6 +4,7 @@ namespace Ashrafic\UpsShipping\Client;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class UpsClient
 {
@@ -50,7 +51,7 @@ class UpsClient
         if (! $response->successful()) {
             $this->log('error', 'UPS API failure', ['path' => $path, 'response' => $payload]);
 
-            throw new \RuntimeException($this->extractError($payload));
+            throw new RuntimeException("UPS API error (HTTP {$response->status()}): ".$this->extractError($payload));
         }
 
         $this->log('debug', 'UPS API call', ['path' => $path]);
@@ -65,6 +66,7 @@ class UpsClient
     {
         return $payload['response']['errors'][0]['message']
             ?? $payload['Fault']['detail']['Errors']['ErrorDetail']['PrimaryErrorCode']['Description']
+            ?? $payload['Fault']['detail']['Errors']['ErrorDetail'][0]['PrimaryErrorCode']['Description']
             ?? 'Unknown UPS API error.';
     }
 
@@ -77,6 +79,6 @@ class UpsClient
             return;
         }
 
-        Log::channel('stack')->{$level}('[UPS] '.$message, $context);
+        Log::{$level}('[UPS] '.$message, $context);
     }
 }

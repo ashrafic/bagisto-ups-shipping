@@ -6,6 +6,7 @@ return [
         'title' => 'UPS Shipping',
         'description' => 'UPS Shipping',
         'active' => false,
+        'debug' => false,
         'class' => 'Ashrafic\UpsShipping\Carriers\Ups',
     ],
 ];
