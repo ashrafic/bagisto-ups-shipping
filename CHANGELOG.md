@@ -3,6 +3,16 @@
 All notable changes are documented in this file, following
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
+## [0.2.0] - 2026-10-15
+
+### Added
+
+- Shipping labels: create from the admin order screen (Ship API), private-disk PDF storage, download, void with UPS confirmation, label cost capture
+- Tracking: refresh status and scan events from the admin (Track API), `ups_shipments` table, "UPS Shipments" admin page with menu and ACL entries
+- Address validation: `AddressValidationService` on the UPS XAV API plus the `ups:validate-address` artisan command
+- Label button injected into the admin order view (appears when the carrier is active and the order has a shipping address)
+- Labels enforce the shipper contact number and account number with actionable error messages
+
 ## [Unreleased]
 
 ### Added
